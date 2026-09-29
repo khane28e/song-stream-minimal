@@ -361,11 +361,11 @@ export default function Landing() {
             <span className="flex size-6 items-center justify-center rounded-md bg-foreground">
               <Play className="size-3 fill-background text-background" />
             </span>
-            <span className="text-sm font-semibold tracking-tight">Tonevault</span>
+          <span className="text-sm font-semibold tracking-tight">Song Stream</span>
           </a>
-          <span className="text-xs text-muted-foreground">
-            free · creative commons
-          </span>
+            <span className="text-xs text-muted-foreground">
+              Free music · no account needed
+            </span>
         </div>
       </header>
 
@@ -386,8 +386,9 @@ export default function Landing() {
           transition={{ duration: 0.5, delay: 0.15 }}
           className="mt-5 max-w-md text-sm leading-6 text-muted-foreground"
         >
-          A quiet place to find Creative Commons and public-domain recordings —
-          preview instantly, keep what you love.
+          A calm, uncluttered way to discover Creative Commons and public-domain
+          recordings — preview a track in one click, then keep the MP3 for
+          good.
         </motion.p>
 
         <motion.form
@@ -500,22 +501,21 @@ export default function Landing() {
 
         {!submitted && !loading && (
           <div className="mt-24 grid gap-10 sm:grid-cols-3">
-            {[
-              {
-                n: "01",
-                t: "Search anything",
-                d: "From Beethoven to bedroom blues — query thousands of freely licensed recordings.",
-              },
-              {
-                n: "02",
-                t: "Preview instantly",
-                d: "Click any track to stream it right here. No account, no redirects.",
-              },
-              {
-                n: "03",
-                t: "Keep it forever",
-                d: "Every MP3 has a one-click download. Yours to keep, share, and remix.",
-              },
+            {[                {
+                  n: "01",
+                  t: "Search anything",
+                  d: "From Beethoven to bedroom blues — query thousands of freely licensed recordings across every genre.",
+                },
+                {
+                  n: "02",
+                  t: "Preview before you commit",
+                  d: "Click any track to hear it right here. No account, no redirects, no interruptions.",
+                },
+                {
+                  n: "03",
+                  t: "Keep it for good",
+                  d: "Every song comes with a one-click MP3 download — yours to keep, share, and remix.",
+                },
             ].map((f) => (
               <div key={f.n}>
                 <p className="text-xs tabular-nums text-muted-foreground">{f.n}</p>
@@ -529,7 +529,7 @@ export default function Landing() {
 
       <footer className="border-t border-border/60">
         <div className="mx-auto flex w-full max-w-5xl flex-col items-center justify-between gap-2 px-4 py-8 text-xs text-muted-foreground sm:flex-row">
-          <span>Tonevault — free music, kept simple.</span>
+          <span>Song Stream — free music, minus the noise.</span>
           <span>
             Audio from{" "}
             <a

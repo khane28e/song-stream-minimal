@@ -1,7 +1,7 @@
 {
-  "name": "Tonevault — Free Music Search & Download",
-  "short_name": "Tonevault",
-  "description": "Search freely licensed music and download it — powered by archive.org",
+  "name": "Song Stream Minimal",
+  "short_name": "Song Stream",
+  "description": "Search freely licensed music, stream it in your browser, and download it — powered by archive.org",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
