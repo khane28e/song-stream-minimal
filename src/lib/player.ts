@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 import { formatDuration } from "@/lib/format";
 import type { Track } from "@/lib/archive";
 
@@ -9,7 +9,7 @@ export interface PlayerTrack extends Track {
   cover?: string;
 }
 
-interface PlayerState {
+export interface PlayerState {
   current: PlayerTrack | null;
   isPlaying: boolean;
   time: number;
@@ -18,7 +18,7 @@ interface PlayerState {
   error: string | null;
 }
 
-type Listener = (s: PlayerState) => void;
+type Listener = () => void;
 
 let audio: HTMLAudioElement | null = null;
 
@@ -31,28 +31,53 @@ const state: PlayerState = {
   error: null,
 };
 
+let snapshot: PlayerState = { ...state };
+
 const listeners = new Set<Listener>();
 
-function emit() {
-  const snapshot = { ...state };
-  listeners.forEach((l) => l(snapshot));
+function getSnapshot(): PlayerState {
+  return snapshot;
 }
 
-function ensureAudio(): HTMLAudioElement {
-  if (audio) return audio;
-  audio = new Audio();
-  audio.preload = "auto";
+function subscribe(listener: Listener): () => void {
+  listeners.add(listener);
+  return () => {
+    listeners.delete(listener);
+  };
+}
+
+function emit() {
+  snapshot = { ...state };
+  for (const listener of listeners) {
+    try {
+      listener();
+    } catch {
+      // Never let one bad subscriber break the store.
+    }
+  }
+}
+
+function ensureAudio(): HTMLAudioElement | null {
+  try {
+    if (audio) return audio;
+    audio = new Audio();
+    audio.preload = "auto";
+  } catch {
+    // Media element unavailable in this runtime — degrade gracefully.
+    audio = null;
+    return null;
+  }
 
   audio.addEventListener("timeupdate", () => {
-    state.time = audio!.currentTime;
-    state.duration = Number.isFinite(audio!.duration)
-      ? audio!.duration
-      : state.duration;
+    if (!audio) return;
+    state.time = audio.currentTime;
+    if (Number.isFinite(audio.duration)) state.duration = audio.duration;
     emit();
   });
 
   audio.addEventListener("loadedmetadata", () => {
-    state.duration = audio!.duration;
+    if (!audio || !Number.isFinite(audio.duration)) return;
+    state.duration = audio.duration;
     emit();
   });
 
@@ -80,31 +105,44 @@ function ensureAudio(): HTMLAudioElement {
 }
 
 export function playTrack(track: PlayerTrack, queue: PlayerTrack[]) {
-  const a = ensureAudio();
   state.error = null;
   state.queue = queue;
   state.current = track;
   state.time = 0;
   state.duration = track.length || 0;
   state.isPlaying = true;
+  emit();
+
+  const a = ensureAudio();
+  if (!a) {
+    state.isPlaying = false;
+    state.error = "Playback is not supported in this browser.";
+    emit();
+    return;
+  }
   a.src = track.url;
-  a.currentTime = 0;
+  try {
+    a.currentTime = 0;
+  } catch {
+    // Not seekable before metadata loads; safe to ignore.
+  }
   a.play().catch(() => {
     state.isPlaying = false;
     emit();
   });
-  emit();
 }
 
 export function toggle() {
-  const a = ensureAudio();
   if (!state.current) return;
+  const a = ensureAudio();
+  if (!a) return;
   if (state.isPlaying) {
     a.pause();
     state.isPlaying = false;
   } else {
     a.play().catch(() => {
       state.isPlaying = false;
+      emit();
     });
     state.isPlaying = true;
   }
@@ -112,10 +150,13 @@ export function toggle() {
 }
 
 export function seek(t: number) {
-  if (audio && state.current) {
+  if (!audio || !state.current) return;
+  try {
     audio.currentTime = t;
     state.time = t;
     emit();
+  } catch {
+    // Seek before metadata is ready; ignore.
   }
 }
 
@@ -127,23 +168,21 @@ export function nextTrack() {
 
 export function prevTrack() {
   const idx = state.queue.findIndex((t) => t.url === state.current?.url);
-  if (idx > 0) playTrack(state.queue[idx - 1], state.queue);
-  else if (audio) {
-    audio.currentTime = 0;
-    state.time = 0;
-    emit();
+  if (idx > 0) {
+    playTrack(state.queue[idx - 1], state.queue);
+  } else if (audio) {
+    try {
+      audio.currentTime = 0;
+      state.time = 0;
+      emit();
+    } catch {
+      // Ignore.
+    }
   }
 }
 
 export function usePlayer(): PlayerState {
-  const [s, setS] = useState<PlayerState>(state);
-  useEffect(() => {
-    listeners.add(setS);
-    return () => {
-      listeners.delete(setS);
-    };
-  }, []);
-  return s;
+  return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 }
 
 export { formatDuration as fmtTime };

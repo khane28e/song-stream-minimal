@@ -361,11 +361,11 @@ export default function Landing() {
             <span className="flex size-6 items-center justify-center rounded-md bg-foreground">
               <Play className="size-3 fill-background text-background" />
             </span>
-          <span className="text-sm font-semibold tracking-tight">Song Stream</span>
+            <span className="text-sm font-semibold tracking-tight">Song Stream</span>
           </a>
-            <span className="text-xs text-muted-foreground">
-              Free music · no account needed
-            </span>
+          <span className="text-xs text-muted-foreground">
+            Free music · no account needed
+          </span>
         </div>
       </header>
 
