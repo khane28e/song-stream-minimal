@@ -1,0 +1,17 @@
+{
+  "name": "Tonevault — Free Music Search & Download",
+  "short_name": "Tonevault",
+  "description": "Search freely licensed music and download it — powered by archive.org",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#000000",
+  "icons": [
+    {
+      "src": "/logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
